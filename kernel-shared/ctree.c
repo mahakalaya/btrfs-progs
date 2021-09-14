@@ -1500,8 +1500,8 @@ again:
  * fixing up pointers when a given leaf/node is not in slot 0 of the
  * higher levels
  */
-void btrfs_fixup_low_keys(struct btrfs_root *root, struct btrfs_path *path,
-			  struct btrfs_disk_key *key, int level)
+void btrfs_fixup_low_keys( struct btrfs_path *path, struct btrfs_disk_key *key,
+		int level)
 {
 	int i;
 	struct extent_buffer *t;
@@ -1548,7 +1548,7 @@ int btrfs_set_item_key_safe(struct btrfs_root *root, struct btrfs_path *path,
 	btrfs_set_item_key(eb, &disk_key, slot);
 	btrfs_mark_buffer_dirty(eb);
 	if (slot == 0)
-		btrfs_fixup_low_keys(root, path, &disk_key, 1);
+		btrfs_fixup_low_keys(path, &disk_key, 1);
 	return 0;
 }
 
@@ -1571,7 +1571,7 @@ void btrfs_set_item_key_unsafe(struct btrfs_root *root,
 	btrfs_set_item_key(eb, &disk_key, slot);
 	btrfs_mark_buffer_dirty(eb);
 	if (slot == 0)
-		btrfs_fixup_low_keys(root, path, &disk_key, 1);
+		btrfs_fixup_low_keys(path, &disk_key, 1);
 }
 
 /*
@@ -2247,7 +2247,7 @@ static int push_leaf_left(struct btrfs_trans_handle *trans, struct btrfs_root
 		btrfs_mark_buffer_dirty(right);
 
 	btrfs_item_key(right, &disk_key, 0);
-	btrfs_fixup_low_keys(root, path, &disk_key, 1);
+	btrfs_fixup_low_keys(path, &disk_key, 1);
 
 	/* then fixup the leaf pointer in the path */
 	if (path->slots[0] < push_items) {
@@ -2478,10 +2478,8 @@ again:
 			free_extent_buffer(path->nodes[0]);
 			path->nodes[0] = right;
 			path->slots[0] = 0;
-			if (path->slots[1] == 0) {
-				btrfs_fixup_low_keys(root, path,
-						     &disk_key, 1);
-			}
+			if (path->slots[1] == 0)
+				btrfs_fixup_low_keys(path, &disk_key, 1);
 		}
 		btrfs_mark_buffer_dirty(right);
 		return ret;
@@ -2695,7 +2693,7 @@ int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
 		btrfs_set_disk_key_offset(&disk_key, offset + size_diff);
 		btrfs_set_item_key(leaf, &disk_key, slot);
 		if (slot == 0)
-			btrfs_fixup_low_keys(root, path, &disk_key, 1);
+			btrfs_fixup_low_keys(path, &disk_key, 1);
 	}
 
 	item = btrfs_item_nr(slot);
@@ -2872,7 +2870,7 @@ int btrfs_insert_empty_items(struct btrfs_trans_handle *trans,
 	ret = 0;
 	if (slot == 0) {
 		btrfs_cpu_key_to_disk(&disk_key, cpu_key);
-		btrfs_fixup_low_keys(root, path, &disk_key, 1);
+		btrfs_fixup_low_keys(path, &disk_key, 1);
 	}
 
 	if (btrfs_leaf_free_space(leaf) < 0) {
@@ -2945,7 +2943,7 @@ int btrfs_del_ptr(struct btrfs_root *root, struct btrfs_path *path,
 		struct btrfs_disk_key disk_key;
 
 		btrfs_node_key(parent, &disk_key, 0);
-		btrfs_fixup_low_keys(root, path, &disk_key, level + 1);
+		btrfs_fixup_low_keys(path, &disk_key, level + 1);
 	}
 	btrfs_mark_buffer_dirty(parent);
 	return ret;
@@ -3045,7 +3043,7 @@ int btrfs_del_items(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 			struct btrfs_disk_key disk_key;
 
 			btrfs_item_key(leaf, &disk_key, 0);
-			btrfs_fixup_low_keys(root, path, &disk_key, 1);
+			btrfs_fixup_low_keys(path, &disk_key, 1);
 		}
 
 		/* delete the leaf if it is mostly empty */

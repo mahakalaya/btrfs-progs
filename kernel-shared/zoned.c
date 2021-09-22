@@ -346,6 +346,7 @@ static int report_zones(int fd, const char *file,
 				error("zoned: ioctl BLKREPORTZONE failed (%m)");
 				exit(1);
 			}
+			zinfo->emulated = false;
 		} else {
 			ret = emulate_report_zones(file, fd,
 						   sector << SECTOR_SHIFT,
@@ -354,6 +355,7 @@ static int report_zones(int fd, const char *file,
 				error("zoned: failed to emulate BLKREPORTZONE");
 				exit(1);
 			}
+			zinfo->emulated = true;
 		}
 
 		if (!rep->nr_zones)

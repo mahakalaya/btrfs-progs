@@ -53,14 +53,23 @@ static int discard_range(int fd, u64 start, u64 len)
 	return 0;
 }
 
-static int discard_supported(int fd)
+static int discard_supported(const char *device)
 {
 	int ret;
+	char buf[128] = {};
 
-	ret = discard_range(fd, 0, 0);
-	if (ret)
-		printf("No discard support (ret=%d): %m", ret);
-	return ret == 0;
+	ret = device_get_queue_param(device, "discard_granularity", buf, sizeof(buf));
+	if (ret == 0) {
+		printf("Cannot read discard_granularity for %s\n", device);
+		return 0;
+	} else {
+		if (buf[0] == '0' && buf[1] == 0) {
+			printf("No discard support (ret=%d): %m\n", ret);
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 /*
@@ -252,7 +261,7 @@ int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 		 * is not necessary for the mkfs functionality but just an
 		 * optimization.
 		 */
-		if (discard_supported(fd)) {
+		if (discard_supported(file)) {
 			if (opflags & PREP_DEVICE_VERBOSE)
 				printf("Performing full device TRIM %s (%s) ...\n",
 						file, pretty_size(block_count));

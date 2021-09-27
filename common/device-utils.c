@@ -53,7 +53,7 @@ static int discard_range(int fd, u64 start, u64 len)
 	return 0;
 }
 
-static in discard_supported(int fd)
+static int discard_supported(int fd)
 {
 	int ret;
 

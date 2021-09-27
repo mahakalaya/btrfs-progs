@@ -55,7 +55,12 @@ static int discard_range(int fd, u64 start, u64 len)
 
 static in discard_supported(int fd)
 {
-	return discard_range(fd, 0, 0) == 0;
+	int ret;
+
+	ret = discard_range(fd, 0, 0);
+	if (ret)
+		printf("No discard support (ret=%d): %m", ret);
+	return ret == 0;
 }
 
 /*

@@ -53,6 +53,11 @@ static int discard_range(int fd, u64 start, u64 len)
 	return 0;
 }
 
+static in discard_supported(int fd)
+{
+	return discard_range(fd, 0, 0) == 0;
+}
+
 /*
  * Discard blocks in the given range in 1G chunks, the process is interruptible
  */
@@ -242,7 +247,7 @@ int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 		 * is not necessary for the mkfs functionality but just an
 		 * optimization.
 		 */
-		if (discard_range(fd, 0, 0) == 0) {
+		if (discard_supported(fd)) {
 			if (opflags & PREP_DEVICE_VERBOSE)
 				printf("Performing full device TRIM %s (%s) ...\n",
 						file, pretty_size(block_count));
